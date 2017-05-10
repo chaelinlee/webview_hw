@@ -10,6 +10,9 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.webkit.JavascriptInterface;
 import android.webkit.JsResult;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -26,13 +29,16 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.logging.Handler;
 
 public class MainActivity extends AppCompatActivity {
     ProgressDialog dialog;
     ListView listview;
     WebView webview;
     EditText edittext;
+    Animation ani;
     LinearLayout l;
+    boolean Isin = false;
     ArrayList<Data> data = new ArrayList<Data>();
     ArrayAdapter<Data>adapter;
 
@@ -43,9 +49,11 @@ public class MainActivity extends AppCompatActivity {
         l = (LinearLayout)findViewById(R.id.linear1);
         edittext=(EditText)findViewById(R.id.editText);
         webview=(WebView)findViewById(R.id.webView);
+        ani= AnimationUtils.loadAnimation(this,R.anim.anim);
         dialog= new ProgressDialog(this);
         listview = (ListView)findViewById(R.id.listview);
         adapter = new ArrayAdapter<Data>(this,android.R.layout.simple_list_item_1,data);
+        webview.addJavascriptInterface(new JavascriptMethod(),"Myapp");
         listview.setAdapter(adapter);
 
         listview.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -64,6 +72,16 @@ public class MainActivity extends AppCompatActivity {
                         }).show();
 
                 return false;
+            }
+        });
+        listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                l.setVisibility(View.VISIBLE);
+                webview.setVisibility(View.VISIBLE);
+                listview.setVisibility(View.INVISIBLE);
+                String url=data.get(position).getUrl();
+                webview.loadUrl("http://"+url);
             }
         });
         webview.setWebViewClient(new WebViewClient(){
@@ -86,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
         });
-
+        webview.loadUrl("http://www.naver.com");
         webview.setWebChromeClient(new WebChromeClient(){
             @Override
             public void onProgressChanged(WebView view, int newProgress) {
@@ -107,7 +125,26 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setSupportZoom(true);
         webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
 
+        ani.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                l.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+
     }
+
+
     public void goURL(View v){
         String url=edittext.getText().toString();
         webview.loadUrl(url);
@@ -121,14 +158,45 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item){
         switch (item.getItemId()){
             case R.id.add:
+                l.setAnimation(ani);
+                ani.start();
+                l.setVisibility(View.INVISIBLE);
                 webview.setVisibility(View.VISIBLE);
                 listview.setVisibility(View.INVISIBLE);
+                webview.loadUrl("file:///android_asset/www/urladd.html");
                 break;
             case R.id.list:
+                l.setVisibility(View.GONE);
                 webview.setVisibility(View.INVISIBLE);
                 listview.setVisibility(View.VISIBLE);
         }
         return super.onOptionsItemSelected(item);
     }
+    Handler myhandler = new Handler();
 
+    private class JavascriptMethod {
+
+        @JavascriptInterface
+        public void saveurl(final String sitename,final String url){
+            myhandler.post(new Runnable(){
+                @Override
+                public void run(){
+                    for(int i=0;i<data.size();i++){
+                        if(data.get(i).getUrl().equals(url))
+                            Isin = true;
+                            break;
+                    }
+                    if(Isin==true){
+                        Toast.makeText(getApplicationContext(),"즐겨찾기에 이미 있는 항목입니다 ",Toast.LENGTH_SHORT).show();
+                        webview.loadUrl("javascript:displayMsg()");
+                    }else{
+                        data.add(new Data(sitename,url));
+                        adapter.notifyDataSetChanged();
+                        Toast.makeText(getApplicationContext(),"즐겨찾기에 추가되었습니다. ",Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
+        }
+    }
 }
