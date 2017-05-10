@@ -3,6 +3,7 @@ package com.example.leechaelin.webview_hw;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
+import android.os.Handler;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -29,7 +30,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.logging.Handler;
+
 
 public class MainActivity extends AppCompatActivity {
     ProgressDialog dialog;
@@ -81,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
                 webview.setVisibility(View.VISIBLE);
                 listview.setVisibility(View.INVISIBLE);
                 String url=data.get(position).getUrl();
-                webview.loadUrl("http://"+url);
+                webview.loadUrl(url);
             }
         });
         webview.setWebViewClient(new WebViewClient(){
@@ -104,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
         });
-        webview.loadUrl("http://www.naver.com");
+        //webview.loadUrl("http://www.naver.com");
         webview.setWebChromeClient(new WebChromeClient(){
             @Override
             public void onProgressChanged(WebView view, int newProgress) {
@@ -177,6 +178,15 @@ public class MainActivity extends AppCompatActivity {
     private class JavascriptMethod {
 
         @JavascriptInterface
+
+        public void visible(){
+            myhandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    l.setVisibility(View.VISIBLE);
+                }
+            });
+        }
         public void saveurl(final String sitename,final String url){
             myhandler.post(new Runnable(){
                 @Override

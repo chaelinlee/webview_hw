@@ -21,11 +21,14 @@
 		document.getElementById('url').value='';
 		document.getElementById('url').focus();
 	}
+	function load(sitename,url){
+	    Myapp.saveurl(sitename,url);
+	}
+	function visible(){
+	    Myapp.visible();
+	}
 	function setMsg(msg){
 		document.getElementById('msg').innerText = msg;
-	}
-	function nowUrl(){
-	    myApp.nowURL();
 	}
 	function siteAdd(){
 		var sitename = document.getElementById('sitename');
@@ -40,14 +43,15 @@
 			url.focus();
 			return;
 		}
-		myApp.receiveURL(sitename.value,url.value);
-		//여기에 앱 메소드 호출
+		setMsg('즐겨찾기 목록에 추가되었습니다.');
+		load(sitename.value,url.value);
 	}
+
   </script>
 </HEAD>
 
 <BODY style="text-align:center;background-color:#FFCCFF">
-<input type="button" value="URL 보이기" onclick="nowUrl()">
+<input type="button" value="URL 보이기" onclick="visible()">
 <h3>즐겨찾기를 추가해 보세요</h3>
 <TABLE style="background-color:#FFF2FF" align="center">
     <TR>
