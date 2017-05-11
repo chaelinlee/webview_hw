@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -39,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
     EditText edittext;
     Animation ani;
     LinearLayout l;
-    boolean Isin = false;
+
     ArrayList<Data> data = new ArrayList<Data>();
     ArrayAdapter<Data>adapter;
 
@@ -72,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }).show();
 
-                return false;
+                return true;
             }
         });
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -157,20 +158,21 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
     public boolean onOptionsItemSelected(MenuItem item){
-        switch (item.getItemId()){
-            case R.id.add:
-                l.setAnimation(ani);
-                ani.start();
-                l.setVisibility(View.INVISIBLE);
-                webview.setVisibility(View.VISIBLE);
-                listview.setVisibility(View.INVISIBLE);
-                webview.loadUrl("file:///android_asset/www/urladd.html");
-                break;
-            case R.id.list:
-                l.setVisibility(View.GONE);
-                webview.setVisibility(View.INVISIBLE);
-                listview.setVisibility(View.VISIBLE);
+        if(item.getItemId()==R.id.add){
+            l.setAnimation(ani);
+            ani.start();
+            l.setVisibility(View.INVISIBLE);
+            webview.setVisibility(View.VISIBLE);
+            listview.setVisibility(View.INVISIBLE);
+            webview.loadUrl("file:///android_asset/www/urladd.html");
+
+        }else if(item.getItemId()==R.id.list){
+            l.setVisibility(View.GONE);
+            webview.setVisibility(View.INVISIBLE);
+            listview.setVisibility(View.VISIBLE);
+
         }
+
         return super.onOptionsItemSelected(item);
     }
     Handler myhandler = new Handler();
@@ -178,7 +180,6 @@ public class MainActivity extends AppCompatActivity {
     private class JavascriptMethod {
 
         @JavascriptInterface
-
         public void visible(){
             myhandler.post(new Runnable() {
                 @Override
@@ -187,22 +188,26 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
+        @JavascriptInterface
         public void saveurl(final String sitename,final String url){
             myhandler.post(new Runnable(){
                 @Override
                 public void run(){
+                    boolean Isin = true;
                     for(int i=0;i<data.size();i++){
-                        if(data.get(i).getUrl().equals(url))
-                            Isin = true;
+                        if(data.get(i).getUrl().equals(url)) {
+                            Log.d("tag", data.get(i).getUrl());
+                            Isin = false;
                             break;
+                        }
                     }
-                    if(Isin==true){
-                        Toast.makeText(getApplicationContext(),"즐겨찾기에 이미 있는 항목입니다 ",Toast.LENGTH_SHORT).show();
-                        webview.loadUrl("javascript:displayMsg()");
-                    }else{
+                    if(Isin){
                         data.add(new Data(sitename,url));
                         adapter.notifyDataSetChanged();
                         Toast.makeText(getApplicationContext(),"즐겨찾기에 추가되었습니다. ",Toast.LENGTH_SHORT).show();
+                    }else{
+                        Toast.makeText(getApplicationContext(),"즐겨찾기에 이미 있는 항목입니다 ",Toast.LENGTH_SHORT).show();
+                        webview.loadUrl("javascript:displayMsg()");
                     }
                 }
             });
